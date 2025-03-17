@@ -5,8 +5,8 @@ import datetime
 class excel_semicolon(csv.excel):
     delimiter = ';'
 
-dataset = sys.argv[1]
-filePath = sys.argv[2]
+dataset = sys.argv[2]
+filePath = sys.argv[1]
 
 caseIdColName = "Case ID"
 durationColName = "Duration"

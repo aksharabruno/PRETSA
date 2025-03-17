@@ -1,3 +1,4 @@
+import uuid
 from pretsa import Pretsa
 from anytree import PreOrderIter, find
 import sys
@@ -24,8 +25,24 @@ class Pretsa_star(Pretsa):
         self.__closestViolatingSequence = dict()
         self.__lastTargetSequence = None
         self.__lastStartSequence = None
+        self.__caseSensitiveValues = self._extract_case_sensitive_values(eventLog)
+        self.__used_nonces = set()
+
+    def _extract_case_sensitive_values(self, eventLog):
+        case_sensitive_values = {}
+        for index, row in eventLog.iterrows():
+            case_id = row['Case ID']
+            impact = row['impact']
+            case_sensitive_values[case_id] = impact
+        return case_sensitive_values
+
+    def _validate_nonce(self, nonce):
+        if nonce in self.__used_nonces:
+            raise Exception("Replay attack detected! Nonce has already been used.")
+        self.__used_nonces.add(nonce)
 
     def runPretsa(self,k,t):
+        self._validate_nonce(str(uuid.uuid4()))
         tree = self._tree
         i = 0
         currentCost = 0.0
@@ -55,8 +72,35 @@ class Pretsa_star(Pretsa):
             changedCases = operation["changedCases"]
             i += 1
         self._tree = self._addDifferentialPrivateNosieToEnsureTCloseness(bestTree,t)
-        return bestChangedCases, totalDistanceFromOriginalLog
+        
+        self._privacyLevel = self._checkPrivacyLevel(self._tree)    # Check if the privacy level is above the minimum threshold
+        print("Current privacy level: ", self._privacyLevel)
+        
+        if not self._checkLDiversity(tree):
+            raise Exception("Homogeneity attack detected! The tree contains homogeneous nodes.")
 
+        return bestChangedCases, totalDistanceFromOriginalLog
+    
+    def _checkPrivacyLevel(self, tree):
+        min_privacy_level = 0.1     # Minimum privacy level is 10%
+        current_privacy_level = 0.0
+        for node in PreOrderIter(tree):
+            if node != tree:
+                current_privacy_level += len(node.cases) / len(tree.cases)
+
+        if current_privacy_level < min_privacy_level:
+            raise Exception("Current privacy level is too low!")
+        
+        return current_privacy_level
+    
+    def _checkLDiversity(self, tree):   # Check if the tree contains homogeneous nodes
+        for node in PreOrderIter(tree):
+            if node != tree:
+                sensitive_values = set(self.__caseSensitiveValues[case] for case in node.cases)
+                if len(sensitive_values) == 1:
+                    return False
+        return True
+        
     def _updateQueue(self,k,tree,violatingCases,violatingVariants,currentCost,changedCases,caseToSequenceDict):
         for variant in violatingVariants.values():
             self._addOperationsToFixVariantToQueue(variant, k, tree, violatingCases, currentCost, changedCases.copy(), caseToSequenceDict)
@@ -344,6 +388,8 @@ class Pretsa_star(Pretsa):
                     numberOfCasesInDistribution = activityCountMap[node.name]
                     numerator = (((t*numberOfCasesInDistribution)/numberOfCasesInNode)-1) * numberOfCasesInNode
                     denominator = numberOfCasesInDistribution - numberOfCasesInNode - 1
+                    if numerator <= 0 or denominator <= 0:
+                        raise Exception("t is too low. Please modify the parameter.")
                     if numberOfCasesInNode != numberOfCasesInDistribution:
                         epsilon = math.log(numerator/denominator)
                         node.annotations[annotationKey] = node.annotations[annotationKey] + np.random.laplace(scale=epsilon)
