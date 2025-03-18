@@ -1,6 +1,6 @@
 # PRETSA-Algorithm Family
 
-This document details the extensions made to the Pretsa_star algorithm to enhance privacy and security through l-diversity implementation, privacy level assessment, and replay attack prevention. This is done in extension to the original work done by Stephen A. et. al [^1].
+This document details the extensions made to the Pretsa_star algorithm [^1] to enhance privacy and security through l-diversity implementation, privacy level assessment, and replay attack prevention.
 
 Original repository: https://github.com/samadeusfp/PRETSA
 
@@ -54,7 +54,7 @@ To run the pretsa algorithm, run the following script. Values of k and t can be 
 python3 runPretsa.py
 ```
 
-In addition, test_pretsa_star.py can test if the functionalities work as expected. To run,
+In addition, test_pretsa_star.py contains tests to see if the functionalities work as expected. To run,
 
 ```
 python3 -m unittest test_pretsa_star.py

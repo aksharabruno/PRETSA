@@ -10,7 +10,7 @@ filePath = "./dataset/bpic2013_homogeneous_dataset.csv"
 k = 8
 t = 1.0
 sys.setrecursionlimit(3000)
-targetFilePath = filePath.replace(".csv","_t%s_k%s_l4_pretsa_star.csv" % (t,k))
+targetFilePath = filePath.replace("_homogeneous_dataset.csv","_t%s_k%s_l4_pretsa_star.csv" % (t,k))
 
 print("Load Event Log")
 eventLog = pd.read_csv(filePath, delimiter=";")
