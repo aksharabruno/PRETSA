@@ -60,6 +60,6 @@ In addition, test_pretsa_star.py contains tests to see if the functionalities wo
 python3 -m unittest test_pretsa_star.py
 ```
 
-[^1]: Stephan A. Fahrenkrog-Petersen, Han van der Aa, and Matthias Weidlich. "Optimal event log sanitization for privacy-preserving process mining." [Link] (https://www.sciencedirect.com/science/article/abs/pii/S0169023X23000356?via%3Dihub)
+[^1]: Stephan A. Fahrenkrog-Petersen, Han van der Aa, and Matthias Weidlich. "Optimal event log sanitization for privacy-preserving process mining." [Link](https://www.sciencedirect.com/science/article/abs/pii/S0169023X23000356?via%3Dihub)
 
 [^2]: Machanavajjhala, A., Kifer, D., Gehrke, J., & Venkitasubramaniam, M. (2007). "ℓ-Diversity: Privacy Beyond k-Anonymity." _ACM Transactions on Knowledge Discovery from Data (TKDD)_. [Link](https://www.cs.rochester.edu/u/muthuv/ldiversity-TKDD.pdf)
