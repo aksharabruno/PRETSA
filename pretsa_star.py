@@ -7,7 +7,6 @@ import numpy as np
 import math
 
 class Pretsa_star(Pretsa):
-
     def __init__(self,eventLog,greedy=True):
         super().__init__(eventLog)
         self._queue = list()
@@ -28,21 +27,8 @@ class Pretsa_star(Pretsa):
         self.__caseSensitiveValues = self._extract_case_sensitive_values(eventLog)
         self.__used_nonces = set()
 
-    def _extract_case_sensitive_values(self, eventLog):
-        case_sensitive_values = {}
-        for index, row in eventLog.iterrows():
-            case_id = row['Case ID']
-            impact = row['impact']
-            case_sensitive_values[case_id] = impact
-        return case_sensitive_values
-
-    def _validate_nonce(self, nonce):
-        if nonce in self.__used_nonces:
-            raise Exception("Replay attack detected! Nonce has already been used.")
-        self.__used_nonces.add(nonce)
-
-    def runPretsa(self,k,t):
-        self._validate_nonce(str(uuid.uuid4()))
+    def runPretsa(self,k,t,nonce):
+        self._validate_nonce(nonce) # Validate the nonce to prevent replay attacks
         tree = self._tree
         i = 0
         currentCost = 0.0
@@ -72,35 +58,146 @@ class Pretsa_star(Pretsa):
             changedCases = operation["changedCases"]
             i += 1
         self._tree = self._addDifferentialPrivateNosieToEnsureTCloseness(bestTree,t)
-        
+
+        self._checkHomogenousNodes(self._tree)    # Check if the tree contains homogeneous nodes
+            
         self._privacyLevel = self._checkPrivacyLevel(self._tree)    # Check if the privacy level is above the minimum threshold
         print("Current privacy level: ", self._privacyLevel)
-        
-        if not self._checkLDiversity(tree):
-            raise Exception("Homogeneity attack detected! The tree contains homogeneous nodes.")
 
         return bestChangedCases, totalDistanceFromOriginalLog
-    
-    def _checkPrivacyLevel(self, tree):
-        min_privacy_level = 0.1     # Minimum privacy level is 10%
-        current_privacy_level = 0.0
-        for node in PreOrderIter(tree):
-            if node != tree:
-                current_privacy_level += len(node.cases) / len(tree.cases)
 
-        if current_privacy_level < min_privacy_level:
-            raise Exception("Current privacy level is too low!")
-        
-        return current_privacy_level
+    def _extract_case_sensitive_values(self, eventLog): #sensitive values are hardcoded
+        case_sensitive_values = {}
+        for index, row in eventLog.iterrows():
+            case_id = row['Case ID']
+            impact = row['impact']
+            case_sensitive_values[case_id] = impact
+        return case_sensitive_values
     
-    def _checkLDiversity(self, tree):   # Check if the tree contains homogeneous nodes
+    def _generate_nonce(self):
+        return str(uuid.uuid4())    # Generate a random nonce
+
+    def _validate_nonce(self, nonce):
+        if nonce in self.__used_nonces: # Check if the nonce has already been used
+            raise Exception("Replay attack detected! Nonce has already been used.")
+        self.__used_nonces.add(nonce)
+
+    def _checkPrivacyLevel(self, tree):
+        min_cases_per_node = float('inf')
+        homogeneous_nodes = 0
+    
+        # Count total nodes for calculating percentages
+        total_nodes = sum(1 for _ in PreOrderIter(tree)) - 1
+    
+        for node in PreOrderIter(tree):
+            if node != tree: 
+                # Check k-anonymity
+                cases_count = len(node.cases)
+                min_cases_per_node = min(min_cases_per_node, cases_count)
+
+                # Check for homogeneous nodes (l-diversity)
+                sensitive_values = set(self.__caseSensitiveValues[case] for case in node.cases)
+                if len(sensitive_values) == 1:
+                    homogeneous_nodes += 1
+    
+        # Calculate overall privacy level
+        # This could be a weighted combination of the metrics
+        privacy_level = {
+            "k_anonymity_level": min_cases_per_node,
+            "homogeneous_nodes_percentage": (homogeneous_nodes / total_nodes) * 100 if total_nodes > 0 else 0
+        }
+
+        overall_score = min_cases_per_node - (homogeneous_nodes / total_nodes)
+    
+        return overall_score
+    
+    def _checkHomogenousNodes(self, tree):   # Check if the tree contains homogeneous nodes
         for node in PreOrderIter(tree):
             if node != tree:
                 sensitive_values = set(self.__caseSensitiveValues[case] for case in node.cases)
                 if len(sensitive_values) == 1:
-                    return False
-        return True
+                    self._modify_data_to_increase_diversity(node, 4)  # Increase diversity to 2-diversity
         
+    def _modify_data_to_increase_diversity(self, node, l):
+        """
+        Modify data to ensure l-diversity for sensitive attributes in a node.
+
+        Parameters:
+        - node: The tree node to modify
+        - l: The minimum diversity level to achieve (each equivalence class should have 
+             at least l distinct values for sensitive attributes)
+        """
+        # Get current sensitive values in the node
+        sensitive_values = [self.__caseSensitiveValues[case] for case in node.cases]
+        unique_values = set(sensitive_values)
+        value_counts = {val: sensitive_values.count(val) for val in unique_values}
+    
+        print(f"Current unique values: {unique_values}, count: {len(unique_values)}, need: {l}")
+    
+        if len(unique_values) < l:
+            # Strategy 1: Try to add similar cases from other nodes to increase diversity
+            added_values = set()
+            other_nodes_cases = set()
+                                
+            # Strategy 2: If we still don't have l-diversity, use generalization
+            current_diversity = len(unique_values) + len(added_values)
+            if current_diversity < l:
+                # Group similar values for generalization
+                value_groups = self._group_similar_values(unique_values, l)
+            
+                # Apply generalization to the node's cases
+                for case in node.cases:
+                    original_value = self.__caseSensitiveValues[case]
+                    for group_name, group_values in value_groups.items():
+                        if original_value in group_values:
+                            self.__caseSensitiveValues[case] = f"{group_name}"
+                            break
+            
+                # Strategy 3: If needed, add synthetic cases with different values
+                generalized_values = set(self.__caseSensitiveValues[case] for case in node.cases)
+                if len(generalized_values) < l:
+                    synthetic_values = [f"synthetic_value_{i}" for i in range(l - len(generalized_values))]
+                    for i, synthetic_value in enumerate(synthetic_values):
+                        synthetic_case = f"synthetic_case_{node.name}_{i}"
+                        node.cases.add(synthetic_case)
+                        self.__caseSensitiveValues[synthetic_case] = synthetic_value
+        
+            # Verify we achieved l-diversity
+            final_values = set(self.__caseSensitiveValues[case] for case in node.cases)
+            print(f"After modification: unique values: {final_values}, count: {len(final_values)}")
+        
+            if len(final_values) < l:
+                print(f"Warning: Could not achieve {l}-diversity for node {node.name}. Achieved {len(final_values)}-diversity.")
+
+        return node
+
+    def _group_similar_values(self, values, l):
+        """
+        Group similar sensitive values to aid generalization.
+    
+        Parameters:
+        - values: Set of unique sensitive values
+        - l: Target diversity level
+    
+        Returns:
+        - Dictionary mapping generalized values to original values
+        """
+        values_list = list(values)
+        # Simple approach: create ceil(len(values)/l) groups
+        num_groups = max(1, math.ceil(len(values) / l))
+        group_size = max(1, math.ceil(len(values) / num_groups))
+    
+        groups = {}
+        for i in range(num_groups):
+            start_idx = i * group_size
+            end_idx = min((i + 1) * group_size, len(values_list))
+            if start_idx < len(values_list):
+                group_values = values_list[start_idx:end_idx]
+                group_name = f"Group_{i+1}"
+                groups[group_name] = group_values
+    
+        return groups
+
     def _updateQueue(self,k,tree,violatingCases,violatingVariants,currentCost,changedCases,caseToSequenceDict):
         for variant in violatingVariants.values():
             self._addOperationsToFixVariantToQueue(variant, k, tree, violatingCases, currentCost, changedCases.copy(), caseToSequenceDict)

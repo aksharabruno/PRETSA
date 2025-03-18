@@ -4,13 +4,7 @@ from pretsa_star import Pretsa_star
 import pandas as pd
 import profile
 
-#filePath = sys.argv[1]
-
-#k = sys.argv[2]
-#t = sys.argv[3]
-
-
-filePath = "./baselogs/bpic2013_dataset.csv"
+filePath = "./baselogs/test1.csv"
 k = 8
 t = 1.0
 sys.setrecursionlimit(3000)
@@ -21,7 +15,8 @@ print("Load Event Log")
 eventLog = pd.read_csv(filePath, delimiter=";")
 print("Starting experiments")
 pretsa = Pretsa_star(eventLog)
-cutOutCases = pretsa.runPretsa(int(k),float(t))
+nonce = pretsa._generate_nonce()
+cutOutCases = pretsa.runPretsa(int(k),float(t),nonce)
 print("Modified " + str(len(cutOutCases)) + " cases for k=" + str(k))
 privateEventLog = pretsa.getPrivatisedEventLog()
 privateEventLog.to_csv(targetFilePath, sep=";",index=False)
