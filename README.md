@@ -1,15 +1,16 @@
 # PRETSA-Algorithm Family
 
-This document details the extensions made to the Pretsa_star algorithm to enhance privacy and security through l-diversity implementation, privacy level assessment, and replay attack prevention. This is done in extension to the original work done by Stephen A. et. al. 
+This document details the extensions made to the Pretsa_star algorithm to enhance privacy and security through l-diversity implementation, privacy level assessment, and replay attack prevention. This is done in extension to the original work done by Stephen A. et. al.
 
 Original paper: https://www.sciencedirect.com/science/article/abs/pii/S0169023X23000356?via%3Dihub
+
 Original repository: https://github.com/samadeusfp/PRETSA
 
 ## New Features
 
 ### L-Diversity Implementation
 
-L-diversity extends k-anonymity by ensuring that sensitive values within each equivalence class (node) are sufficiently diverse.
+L-diversity extends k-anonymity by ensuring that sensitive values within each equivalence class (node) are sufficiently diverse [^1].
 
 - \_extract_case_sensitive_values(self, eventLog):
   This function extracts sensitive values from the event log for each case ID. It iterates through the event log, maps each case ID to its "impact" value, and stores these mappings in a dictionary with case IDs as keys and impact values as values.
@@ -23,7 +24,6 @@ L-diversity extends k-anonymity by ensuring that sensitive values within each eq
 - \_group_similar_values(self, values, l):
   This function groups similar sensitive values to support generalization. It calculates the optimal number of groups needed based on target diversity level and partitions the values into these groups.
 
-
 ### Replay Attack Prevention
 
 The implementation introduces a nonce-based mechanism to prevent replay attacks:
@@ -34,14 +34,13 @@ The implementation introduces a nonce-based mechanism to prevent replay attacks:
 - \_validate_nonce(self, nonce):
   It checks if the provided nonce exists in the set of previously used nonces. If found, raises an exception indicating a replay attack attempt. If unique, adds the nonce to the set of used nonces.
 
-
 ### Privacy Level Assessment
 
 - \_checkPrivacyLevel(self, tree):
-  This function is used to determine the overall privacy level of the anonymized tree. The minimum number of cases in any node will be the k-anonymity metric. Nodes with only one distinct sensitive value will be the l-diversity metric. The overall score is a cumulation of both these metrics.
+  This function is used to determine the overall privacy level of the anonymized tree. The minimum number of cases in any node is considered as the k-anonymity metric. Nodes with only one distinct sensitive value is considered as the l-diversity metric. The overall score is a cumulation of both these metrics.
 
+> [!Note]
 > All these functions are implemented in pretsa_star.py
-
 
 ## How to run PRETSA\*
 
@@ -51,9 +50,10 @@ Install prerequisites
 pip install -r requirements.txt
 ```
 
-To run the pretsa algorithm, run the following script. You can change values of k and t in runPretsa.py.
+To run the pretsa algorithm, run the following script. Values of k and t can be changed in runPretsa.py.
 
 ```
 python3 runPretsa.py
 ```
 
+[^1]: Machanavajjhala, A., Kifer, D., Gehrke, J., & Venkitasubramaniam, M. (2007). "ℓ-Diversity: Privacy Beyond k-Anonymity." _ACM Transactions on Knowledge Discovery from Data (TKDD)_. [Link](https://www.cs.rochester.edu/u/muthuv/ldiversity-TKDD.pdf)
