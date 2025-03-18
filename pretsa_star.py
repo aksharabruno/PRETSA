@@ -104,7 +104,7 @@ class Pretsa_star(Pretsa):
         privacy_level = {
             "k_anonymity_level": min_cases_per_node,
             "homogeneous_nodes_percentage": (homogeneous_nodes / total_nodes) * 100 if total_nodes > 0 else 0
-        }   # maybe should factor in t-closeness as well
+        }
 
         overall_score = min_cases_per_node - (homogeneous_nodes / total_nodes)
     

@@ -8,7 +8,7 @@ Original repository: https://github.com/samadeusfp/PRETSA
 
 ### L-Diversity Implementation
 
-L-diversity extends k-anonymity by ensuring that sensitive values within each equivalence class (node) are sufficiently diverse [^1].
+L-diversity extends k-anonymity by ensuring that sensitive values within each equivalence class (node) are sufficiently diverse [^2].
 
 - `_extract_case_sensitive_values(self, eventLog)`:
   This function extracts sensitive values from the event log for each case ID. It iterates through the event log, maps each case ID to its "impact" value, and stores these mappings in a dictionary with case IDs as keys and impact values as values.
@@ -61,4 +61,5 @@ python3 -m unittest test_pretsa_star.py
 ```
 
 [^1]: Stephan A. Fahrenkrog-Petersen, Han van der Aa, and Matthias Weidlich. "Optimal event log sanitization for privacy-preserving process mining." [Link] (https://www.sciencedirect.com/science/article/abs/pii/S0169023X23000356?via%3Dihub)
+
 [^2]: Machanavajjhala, A., Kifer, D., Gehrke, J., & Venkitasubramaniam, M. (2007). "ℓ-Diversity: Privacy Beyond k-Anonymity." _ACM Transactions on Knowledge Discovery from Data (TKDD)_. [Link](https://www.cs.rochester.edu/u/muthuv/ldiversity-TKDD.pdf)
