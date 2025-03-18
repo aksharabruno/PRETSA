@@ -12,31 +12,31 @@ Original repository: https://github.com/samadeusfp/PRETSA
 
 L-diversity extends k-anonymity by ensuring that sensitive values within each equivalence class (node) are sufficiently diverse [^1].
 
-- \_extract_case_sensitive_values(self, eventLog):
+- `_extract_case_sensitive_values(self, eventLog)`:
   This function extracts sensitive values from the event log for each case ID. It iterates through the event log, maps each case ID to its "impact" value, and stores these mappings in a dictionary with case IDs as keys and impact values as values.
 
-- \_checkHomogenousNodes(self, tree):
+- `_checkHomogenousNodes(self, tree)`:
   This function identifies nodes with only one distinct sensitive value (homogeneous). It traverses the tree, looks at each node's cases, checks if all cases in a node have the same sensitive value, and calls the diversity improvement function when needed.
 
-- \_modify_data_to_increase_diversity(self, node, l):
+- `_modify_data_to_increase_diversity(self, node, l)`:
   This function increases diversity in homogeneous nodes to meet the l-diversity requirement. Initially, it determines current unique sensitive values in the node. If diversity is insufficient, attempts to group similar values using generalization. A generalized value categorization is done and synthetic cases with different values are added to meet the diversity threshold.
 
-- \_group_similar_values(self, values, l):
+- `_group_similar_values(self, values, l)`:
   This function groups similar sensitive values to support generalization. It calculates the optimal number of groups needed based on target diversity level and partitions the values into these groups.
 
 ### Replay Attack Prevention
 
 The implementation introduces a nonce-based mechanism to prevent replay attacks:
 
-- \_generate_nonce(self):
+- `_generate_nonce(self)`:
   Uses the UUID4 standard to generate a cryptographically strong random identifier for each algorithm execution.
 
-- \_validate_nonce(self, nonce):
+- `_validate_nonce(self, nonce)`:
   It checks if the provided nonce exists in the set of previously used nonces. If found, raises an exception indicating a replay attack attempt. If unique, adds the nonce to the set of used nonces.
 
 ### Privacy Level Assessment
 
-- \_checkPrivacyLevel(self, tree):
+- `_checkPrivacyLevel(self, tree)`:
   This function is used to determine the overall privacy level of the anonymized tree. The minimum number of cases in any node is considered as the k-anonymity metric. Nodes with only one distinct sensitive value is considered as the l-diversity metric. The overall score is a cumulation of both these metrics.
 
 > [!Note]
