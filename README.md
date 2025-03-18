@@ -1,8 +1,6 @@
 # PRETSA-Algorithm Family
 
-This document details the extensions made to the Pretsa_star algorithm to enhance privacy and security through l-diversity implementation, privacy level assessment, and replay attack prevention. This is done in extension to the original work done by Stephen A. et. al.
-
-Original paper: https://www.sciencedirect.com/science/article/abs/pii/S0169023X23000356?via%3Dihub
+This document details the extensions made to the Pretsa_star algorithm to enhance privacy and security through l-diversity implementation, privacy level assessment, and replay attack prevention. This is done in extension to the original work done by Stephen A. et. al [^1].
 
 Original repository: https://github.com/samadeusfp/PRETSA
 
@@ -56,4 +54,11 @@ To run the pretsa algorithm, run the following script. Values of k and t can be 
 python3 runPretsa.py
 ```
 
-[^1]: Machanavajjhala, A., Kifer, D., Gehrke, J., & Venkitasubramaniam, M. (2007). "ℓ-Diversity: Privacy Beyond k-Anonymity." _ACM Transactions on Knowledge Discovery from Data (TKDD)_. [Link](https://www.cs.rochester.edu/u/muthuv/ldiversity-TKDD.pdf)
+In addition, test_pretsa_star.py can test if the functionalities work as expected. To run,
+
+```
+python3 -m unittest test_pretsa_star.py
+```
+
+[^1]: Stephan A. Fahrenkrog-Petersen, Han van der Aa, and Matthias Weidlich. "Optimal event log sanitization for privacy-preserving process mining." [Link] (https://www.sciencedirect.com/science/article/abs/pii/S0169023X23000356?via%3Dihub)
+[^2]: Machanavajjhala, A., Kifer, D., Gehrke, J., & Venkitasubramaniam, M. (2007). "ℓ-Diversity: Privacy Beyond k-Anonymity." _ACM Transactions on Knowledge Discovery from Data (TKDD)_. [Link](https://www.cs.rochester.edu/u/muthuv/ldiversity-TKDD.pdf)
