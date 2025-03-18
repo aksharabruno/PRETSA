@@ -4,12 +4,13 @@ from pretsa_star import Pretsa_star
 import pandas as pd
 import profile
 
-filePath = "./baselogs/test1.csv"
+filePath = "./dataset/bpic2013_homogeneous_dataset.csv"
+
+# Chose these values of k and t since they were suggested in the paper. Lower value of t raises ValueError
 k = 8
 t = 1.0
 sys.setrecursionlimit(3000)
-targetFilePath = filePath.replace(".csv","_t%s_k%s_pretsa_star.csv" % (t,k))
-
+targetFilePath = filePath.replace(".csv","_t%s_k%s_l4_pretsa_star.csv" % (t,k))
 
 print("Load Event Log")
 eventLog = pd.read_csv(filePath, delimiter=";")

@@ -66,27 +66,28 @@ class Pretsa_star(Pretsa):
 
         return bestChangedCases, totalDistanceFromOriginalLog
 
-    def _extract_case_sensitive_values(self, eventLog): #sensitive values are hardcoded
+    def _extract_case_sensitive_values(self, eventLog): 
         case_sensitive_values = {}
         for index, row in eventLog.iterrows():
-            case_id = row['Case ID']
+            case_id = row['Case ID']    # Chose these as sensitive attributes for bpic2013 dataset
             impact = row['impact']
             case_sensitive_values[case_id] = impact
         return case_sensitive_values
     
     def _generate_nonce(self):
-        return str(uuid.uuid4())    # Generate a random nonce
+        nonce = str(uuid.uuid4())
+        print("Nonce generated: ", nonce)
+        return nonce    # Generate a random nonce
 
     def _validate_nonce(self, nonce):
         if nonce in self.__used_nonces: # Check if the nonce has already been used
             raise Exception("Replay attack detected! Nonce has already been used.")
         self.__used_nonces.add(nonce)
+        print("Nonce validated. No replay attack. Proceeding...")
 
     def _checkPrivacyLevel(self, tree):
         min_cases_per_node = float('inf')
         homogeneous_nodes = 0
-    
-        # Count total nodes for calculating percentages
         total_nodes = sum(1 for _ in PreOrderIter(tree)) - 1
     
         for node in PreOrderIter(tree):
@@ -99,35 +100,26 @@ class Pretsa_star(Pretsa):
                 sensitive_values = set(self.__caseSensitiveValues[case] for case in node.cases)
                 if len(sensitive_values) == 1:
                     homogeneous_nodes += 1
-    
-        # Calculate overall privacy level
-        # This could be a weighted combination of the metrics
+                    
         privacy_level = {
             "k_anonymity_level": min_cases_per_node,
             "homogeneous_nodes_percentage": (homogeneous_nodes / total_nodes) * 100 if total_nodes > 0 else 0
-        }
+        }   # maybe should factor in t-closeness as well
 
         overall_score = min_cases_per_node - (homogeneous_nodes / total_nodes)
     
         return overall_score
     
     def _checkHomogenousNodes(self, tree):   # Check if the tree contains homogeneous nodes
+        print("Checking for homogeneous nodes...")
         for node in PreOrderIter(tree):
             if node != tree:
                 sensitive_values = set(self.__caseSensitiveValues[case] for case in node.cases)
                 if len(sensitive_values) == 1:
-                    self._modify_data_to_increase_diversity(node, 4)  # Increase diversity to 2-diversity
+                    print("Homogeneous nodes found! Modifying tree...")
+                    self._modify_data_to_increase_diversity(node, 4)  # Increase diversity to 4-diversity
         
-    def _modify_data_to_increase_diversity(self, node, l):
-        """
-        Modify data to ensure l-diversity for sensitive attributes in a node.
-
-        Parameters:
-        - node: The tree node to modify
-        - l: The minimum diversity level to achieve (each equivalence class should have 
-             at least l distinct values for sensitive attributes)
-        """
-        # Get current sensitive values in the node
+    def _modify_data_to_increase_diversity(self, node, l):  # l is the minimum diversity we are trying to achieve
         sensitive_values = [self.__caseSensitiveValues[case] for case in node.cases]
         unique_values = set(sensitive_values)
         value_counts = {val: sensitive_values.count(val) for val in unique_values}
@@ -135,28 +127,21 @@ class Pretsa_star(Pretsa):
         print(f"Current unique values: {unique_values}, count: {len(unique_values)}, need: {l}")
     
         if len(unique_values) < l:
-            # Strategy 1: Try to add similar cases from other nodes to increase diversity
             added_values = set()
-            other_nodes_cases = set()
-                                
-            # Strategy 2: If we still don't have l-diversity, use generalization
             current_diversity = len(unique_values) + len(added_values)
             if current_diversity < l:
-                # Group similar values for generalization
-                value_groups = self._group_similar_values(unique_values, l)
-            
-                # Apply generalization to the node's cases
-                for case in node.cases:
+                value_groups = self._group_similar_values(unique_values, l) # Group similar values for generalization   
+                            
+                for case in node.cases: # Apply generalization to the node's cases
                     original_value = self.__caseSensitiveValues[case]
                     for group_name, group_values in value_groups.items():
                         if original_value in group_values:
                             self.__caseSensitiveValues[case] = f"{group_name}"
                             break
             
-                # Strategy 3: If needed, add synthetic cases with different values
                 generalized_values = set(self.__caseSensitiveValues[case] for case in node.cases)
                 if len(generalized_values) < l:
-                    synthetic_values = [f"synthetic_value_{i}" for i in range(l - len(generalized_values))]
+                    synthetic_values = [f"synthetic_value_{i}" for i in range(l - len(generalized_values))] # Add synthetic cases with different values
                     for i, synthetic_value in enumerate(synthetic_values):
                         synthetic_case = f"synthetic_case_{node.name}_{i}"
                         node.cases.add(synthetic_case)
@@ -172,18 +157,8 @@ class Pretsa_star(Pretsa):
         return node
 
     def _group_similar_values(self, values, l):
-        """
-        Group similar sensitive values to aid generalization.
-    
-        Parameters:
-        - values: Set of unique sensitive values
-        - l: Target diversity level
-    
-        Returns:
-        - Dictionary mapping generalized values to original values
-        """
         values_list = list(values)
-        # Simple approach: create ceil(len(values)/l) groups
+
         num_groups = max(1, math.ceil(len(values) / l))
         group_size = max(1, math.ceil(len(values) / num_groups))
     
@@ -196,7 +171,7 @@ class Pretsa_star(Pretsa):
                 group_name = f"Group_{i+1}"
                 groups[group_name] = group_values
     
-        return groups
+        return groups   # Dictionary with generalized values mapped to original values
 
     def _updateQueue(self,k,tree,violatingCases,violatingVariants,currentCost,changedCases,caseToSequenceDict):
         for variant in violatingVariants.values():
