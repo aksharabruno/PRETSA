@@ -6,7 +6,7 @@ import profile
 
 filePath = "./dataset/bpic2013_homogeneous_dataset.csv"
 
-# Chose these values of k and t since they were suggested in the paper. Lower value of t raises ValueError
+# Chose these values of k and t since they were suggested in the paper. Lower value of t raises ValueError for this dataset
 k = 8
 t = 1.0
 sys.setrecursionlimit(3000)

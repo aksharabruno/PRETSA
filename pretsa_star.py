@@ -61,7 +61,7 @@ class Pretsa_star(Pretsa):
 
         self._checkHomogenousNodes(self._tree)    # Check if the tree contains homogeneous nodes
             
-        self._privacyLevel = self._checkPrivacyLevel(self._tree)    # Check if the privacy level is above the minimum threshold
+        self._privacyLevel = self._checkPrivacyLevel(self._tree)
         print("Current privacy level: ", self._privacyLevel)
 
         return bestChangedCases, totalDistanceFromOriginalLog
@@ -75,9 +75,9 @@ class Pretsa_star(Pretsa):
         return case_sensitive_values
     
     def _generate_nonce(self):
-        nonce = str(uuid.uuid4())
+        nonce = str(uuid.uuid4())   # Generate a random nonce
         print("Nonce generated: ", nonce)
-        return nonce    # Generate a random nonce
+        return nonce    
 
     def _validate_nonce(self, nonce):
         if nonce in self.__used_nonces: # Check if the nonce has already been used
@@ -119,10 +119,9 @@ class Pretsa_star(Pretsa):
                     print("Homogeneous nodes found! Modifying tree...")
                     self._modify_data_to_increase_diversity(node, 4)  # Increase diversity to 4-diversity
         
-    def _modify_data_to_increase_diversity(self, node, l):  # l is the minimum diversity we are trying to achieve
+    def _modify_data_to_increase_diversity(self, node, l):  # l is the minimum diversity we are try to achieve
         sensitive_values = [self.__caseSensitiveValues[case] for case in node.cases]
         unique_values = set(sensitive_values)
-        value_counts = {val: sensitive_values.count(val) for val in unique_values}
     
         print(f"Current unique values: {unique_values}, count: {len(unique_values)}, need: {l}")
     

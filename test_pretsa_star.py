@@ -32,12 +32,8 @@ class TestPretsaStar(unittest.TestCase):
         self.pretsa_star._checkHomogenousNodes(root)
         self.pretsa_star._modify_data_to_increase_diversity.assert_called()
         self.assertEqual(self.pretsa_star._modify_data_to_increase_diversity.call_count, 3)
-
+    
     def testReplayAttack(self):
-        self.pretsa_star._addDifferentialPrivateNosieToEnsureTCloseness = MagicMock()
-        self.pretsa_star._checkPrivacyLevel = MagicMock()
-        self.pretsa_star._checkLDiversity = MagicMock(return_value=False)
-
         nonce1 = self.pretsa_star._generate_nonce()
         self.pretsa_star._validate_nonce(nonce1)
 

@@ -14,10 +14,10 @@ L-diversity extends k-anonymity by ensuring that sensitive values within each eq
   This function extracts sensitive values from the event log for each case ID. It iterates through the event log, maps each case ID to its "impact" value, and stores these mappings in a dictionary with case IDs as keys and impact values as values.
 
 - `_checkHomogenousNodes(self, tree)`:
-  This function identifies nodes with only one distinct sensitive value (homogeneous). It traverses the tree, looks at each node's cases, checks if all cases in a node have the same sensitive value, and calls the diversity improvement function when needed.
+  This function identifies nodes with only one distinct sensitive value (homogeneous). It traverses the tree, looks at each node's cases, checks if all cases in a node have the same sensitive value, and calls the \_modify_data_to_increase_diversity() function when needed.
 
 - `_modify_data_to_increase_diversity(self, node, l)`:
-  This function increases diversity in homogeneous nodes to meet the l-diversity requirement. Initially, it determines current unique sensitive values in the node. If diversity is insufficient, attempts to group similar values using generalization. A generalized value categorization is done and synthetic cases with different values are added to meet the diversity threshold.
+  This function increases diversity in homogeneous nodes to meet the l-diversity requirement. Initially, it determines current unique sensitive values in the node. If diversity is insufficient, it attempts to group similar values using generalization. A generalized value categorization is done and synthetic cases with different values are added to meet the diversity threshold.
 
 - `_group_similar_values(self, values, l)`:
   This function groups similar sensitive values to support generalization. It calculates the optimal number of groups needed based on target diversity level and partitions the values into these groups.
@@ -61,5 +61,4 @@ python3 -m unittest test_pretsa_star.py
 ```
 
 [^1]: Stephan A. Fahrenkrog-Petersen, Han van der Aa, and Matthias Weidlich. "Optimal event log sanitization for privacy-preserving process mining." [Link](https://www.sciencedirect.com/science/article/abs/pii/S0169023X23000356?via%3Dihub)
-
 [^2]: Machanavajjhala, A., Kifer, D., Gehrke, J., & Venkitasubramaniam, M. (2007). "ℓ-Diversity: Privacy Beyond k-Anonymity." _ACM Transactions on Knowledge Discovery from Data (TKDD)_. [Link](https://www.cs.rochester.edu/u/muthuv/ldiversity-TKDD.pdf)
